@@ -1,0 +1,101 @@
+﻿@model EstateFresh.Models.ReportsViewModel
+
+@{
+    ViewData["Title"] = "Reports";
+    Layout = "_AdminLayout";
+}
+
+<h2 style="font-family: 'Playfair Display', serif;" class="mb-4">Reports</h2>
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <p class="text-muted mb-1">Total Orders</p>
+                <h3 style="color: var(--estate-eucalyptus);">@Model.TotalOrders</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <p class="text-muted mb-1">Total Revenue</p>
+                <h3 style="color: var(--estate-eucalyptus);">R@(Model.TotalRevenue.ToString("0.00"))</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <p class="text-muted mb-1">Pending Disputes</p>
+                <h3 style="color: var(--estate-oak);">@Model.PendingDisputes</h3>
+                @if (Model.PendingDisputes > 0)
+                {
+                    <a href="@Url.Action("WeightDisputes")" class="small">Review now →</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="mb-3">Orders by Status</h5>
+                @if (!Model.OrdersByStatus.Any())
+                {
+                    <p class="text-muted mb-0">No orders yet.</p>
+                }
+                else
+                {
+                    <table class="table table-sm align-middle">
+                        <tbody>
+                            @foreach (var item in Model.OrdersByStatus)
+                            {
+                                <tr>
+                                    <td>@item.Status</td>
+                                    <td class="text-end fw-semibold">@item.Count</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="mb-3">Revenue by Service</h5>
+                @if (!Model.RevenueByService.Any())
+                {
+                    <p class="text-muted mb-0">No revenue recorded yet.</p>
+                }
+                else
+                {
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th class="text-end">Orders</th>
+                                <th class="text-end">Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.RevenueByService)
+                            {
+                                <tr>
+                                    <td>@item.ServiceName</td>
+                                    <td class="text-end">@item.OrderCount</td>
+                                    <td class="text-end fw-semibold">R@(item.Revenue.ToString("0.00"))</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>

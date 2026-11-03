@@ -1,0 +1,68 @@
+﻿@model IEnumerable<EstateFresh.Models.Service>
+
+@{
+    ViewData["Title"] = "Manage Services";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="font-family: 'Playfair Display', serif;" class="mb-0">Manage Services</h2>
+    <a href="@Url.Action("CreateService")" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i> Add Service
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<div class="card">
+    <div class="card-body">
+        @if (!Model.Any())
+        {
+            <p class="text-muted mb-0">No services yet. Click "Add Service" to create one.</p>
+        }
+        else
+        {
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Rate per Kg</th>
+                        <th>Rate per Item</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var service in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@service.Name</td>
+                            <td class="text-muted">@service.Description</td>
+                            <td>@(service.RatePerKg.HasValue ? "R" + service.RatePerKg.Value.ToString("0.00") : "-")</td>
+                            <td>@(service.RatePerItem.HasValue ? "R" + service.RatePerItem.Value.ToString("0.00") : "-")</td>
+                            <td class="text-end">
+                                <a href="@Url.Action("EditService", new { id = service.ServiceID })" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </a>
+                                <form asp-action="DeleteService" asp-controller="Admin" method="post" class="d-inline"
+                                      onsubmit="return confirm('Delete \'@service.Name\'? This cannot be undone.');">
+                                    <input type="hidden" name="id" value="@service.ServiceID" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fa-solid fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

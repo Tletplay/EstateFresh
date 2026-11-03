@@ -1,0 +1,189 @@
+﻿@model EstateFresh.Models.Order
+
+@{
+    ViewData["Title"] = $"Order #{Model.OrderID} - Estate Fresh";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 style="font-family: 'Playfair Display', serif;">Order #@Model.OrderID</h3>
+                        <span class="badge @(Model.Status == "Completed" ? "badge-estate-complete" : "badge-estate-pending") fs-6">
+                            @Model.Status
+                        </span>
+                    </div>
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                    }
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <p><strong>Service:</strong> @Model.Service?.Name</p>
+                            <p><strong>Created:</strong> @Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</p>
+                            @if (Model.PickedUpAt.HasValue)
+                            {
+                                <p><strong>Picked Up:</strong> @Model.PickedUpAt.Value.ToString("dd MMM yyyy HH:mm")</p>
+                            }
+                            @if (Model.DeliveredAt.HasValue)
+                            {
+                                <p><strong>Delivered:</strong> @Model.DeliveredAt.Value.ToString("dd MMM yyyy HH:mm")</p>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            @if (Model.Status == "Out for Delivery")
+                            {
+                                <div class="mb-3">
+                                    <h6><i class="fa-solid fa-truck"></i> Live Driver Tracking</h6>
+                                    <div id="driverMap" style="height: 300px; border-radius: 12px; overflow: hidden;"></div>
+                                    <p id="etaText" class="text-muted small mt-2 mb-0">Locating driver...</p>
+                                </div>
+
+                                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                                <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                                <script>
+                                    const orderId = @Model.OrderID;
+                                    const destination = { lat: -29.5389, lng: 31.2147 }; // Zimbali Coastal Resort entrance
+
+                                    let map, driverMarker, destMarker, routeLine;
+
+                                    function initMap(driverLat, driverLng) {
+                                        map = L.map('driverMap').setView([driverLat, driverLng], 13);
+                                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                            attribution: '&copy; OpenStreetMap contributors'
+                                        }).addTo(map);
+
+                                        driverMarker = L.marker([driverLat, driverLng]).addTo(map).bindPopup("Your driver");
+                                        destMarker = L.marker([destination.lat, destination.lng]).addTo(map).bindPopup("Zimbali Coastal Resort");
+                                    }
+
+                                    async function updateEta(driverLat, driverLng) {
+                                        try {
+                                            const url = `https://router.project-osrm.org/route/v1/driving/${driverLng},${driverLat};${destination.lng},${destination.lat}?overview=false`;
+                                            const response = await fetch(url);
+                                            const data = await response.json();
+
+                                            if (data.routes && data.routes.length > 0) {
+                                                const minutes = Math.round(data.routes[0].duration / 60);
+                                                const km = (data.routes[0].distance / 1000).toFixed(1);
+                                                document.getElementById('etaText').textContent = `Estimated arrival: ~${minutes} min (${km} km away)`;
+                                            }
+                                        } catch (err) {
+                                            console.error('ETA lookup failed:', err);
+                                        }
+                                    }
+
+                                    async function pollDriverLocation() {
+                                        try {
+                                            const response = await fetch(`/Order/DriverLocation?orderId=${orderId}`);
+                                            const data = await response.json();
+
+                                            if (!data.success) {
+                                                document.getElementById('etaText').textContent = 'Waiting for driver location...';
+                                                return;
+                                            }
+
+                                            if (!map) {
+                                                initMap(data.latitude, data.longitude);
+                                            } else {
+                                                driverMarker.setLatLng([data.latitude, data.longitude]);
+                                            }
+
+                                            updateEta(data.latitude, data.longitude);
+                                        } catch (err) {
+                                            console.error('Location polling failed:', err);
+                                        }
+                                    }
+
+                                    pollDriverLocation();
+                                    setInterval(pollDriverLocation, 10000);
+                                </script>
+                            }
+                            @if (ViewBag.RainWarning == true)
+                            {
+                                <div class="alert alert-warning">
+                                    <i class="fa-solid fa-cloud-showers-heavy"></i>
+                                    <strong>Weather Notice:</strong> Rain is forecast for your pickup date. Your driver has been notified and may contact you if needed.
+                                </div>
+                            }
+
+                            @if (Model.ActualWeightKg.HasValue)
+                            {
+                                <p><strong>Weight:</strong> @Model.ActualWeightKg.Value kg</p>
+                                <p><strong>Subtotal:</strong> R@(Model.Subtotal?.ToString("F2"))</p>
+                            }
+
+
+                            <p><strong>Deposit Paid:</strong> R@(Model.DepositPaid.ToString("F2"))</p>
+                            @if (Model.BalanceDue.HasValue && Model.BalanceDue.Value > 0)
+                            {
+                                <p class="text-danger"><strong>Balance Due:</strong> R@(Model.BalanceDue.Value.ToString("F2"))</p>
+                            }
+                        </div>
+                    </div>
+
+                    @if (Model.ActualWeightKg.HasValue)
+                    {
+                        <hr />
+                        <div class="mt-3">
+                            @if (!string.IsNullOrEmpty(Model.DisputeResolutionNote))
+                            {
+                                <div class="alert alert-info">
+                                    <strong>Weight Dispute Resolved:</strong> @Model.DisputeResolutionNote
+                                </div>
+                            }
+                            else if (Model.WeightDisputed)
+                            {
+                                <div class="alert alert-warning">
+                                    <strong>Dispute under review:</strong> @Model.DisputeReason
+                                </div>
+                            }
+                            else
+                            {
+                                <button class="btn btn-outline-caution btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#disputeForm">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> Dispute Weight
+                                </button>
+                                <div class="collapse mt-3" id="disputeForm">
+                                    <form asp-action="DisputeWeight" asp-controller="Order" method="post">
+                                        <input type="hidden" name="orderId" value="@Model.OrderID" />
+                                        <div class="mb-2">
+                                            <label class="form-label">Why are you disputing this weight?</label>
+                                            <textarea name="disputeReason" class="form-control" rows="2" required></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-caution btn-sm">Submit Dispute</button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <hr />
+
+                    <div class="mt-3">
+                        <h6>Status Timeline</h6>
+                        <ul class="list-unstyled">
+                            <li>✅ Deposit Paid</li>
+                            <li>@(Model.Status == "Awaiting Pickup" || Model.Status != "Deposit Paid" ? "✅" : "⏳") Awaiting Pickup</li>
+                            <li>@(Model.Status == "Processing" || Model.Status == "Out for Delivery" || Model.Status == "Delivered" || Model.Status == "Completed" ? "✅" : "⏳") Processing</li>
+                            <li>@(Model.Status == "Out for Delivery" || Model.Status == "Delivered" || Model.Status == "Completed" ? "✅" : "⏳") Out for Delivery</li>
+                            <li>@(Model.Status == "Delivered" || Model.Status == "Completed" ? "✅" : "⏳") Delivered</li>
+                            <li>@(Model.Status == "Completed" ? "✅" : "⏳") Completed</li>
+                        </ul>
+                    </div>
+
+                    <a href="@Url.Action("MyOrders", "Order")" class="btn btn-outline-estate mt-3">
+                        <i class="fa-solid fa-arrow-left me-1"></i>Back to Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

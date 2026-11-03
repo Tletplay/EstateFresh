@@ -1,0 +1,58 @@
+﻿@model IEnumerable<EstateFresh.Models.Order>
+
+@{
+    ViewData["Title"] = "Weight Disputes";
+    Layout = "_AdminLayout";
+}
+
+<h2 style="font-family: 'Playfair Display', serif;" class="mb-4">Weight Disputes</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<div class="card">
+    <div class="card-body">
+        @if (!Model.Any())
+        {
+            <p class="text-muted mb-0">No disputes waiting for review.</p>
+        }
+        else
+        {
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Customer</th>
+                        <th>Service</th>
+                        <th>Recorded Weight</th>
+                        <th>Customer's Reason</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">#@order.OrderID</td>
+                            <td>@order.Customer?.FullName</td>
+                            <td>@order.Service?.Name</td>
+                            <td>@order.ActualWeightKg?.ToString("0.00") kg</td>
+                            <td class="text-muted">@order.DisputeReason</td>
+                            <td class="text-end">
+                                <a href="@Url.Action("ResolveDispute", new { id = order.OrderID })" class="btn btn-sm btn-caution">
+                                    <i class="fa-solid fa-scale-balanced"></i> Review
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

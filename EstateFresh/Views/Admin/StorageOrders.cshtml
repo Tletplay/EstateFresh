@@ -1,0 +1,74 @@
+﻿@model IEnumerable<EstateFresh.Models.Order>
+
+@{
+    ViewData["Title"] = "Storage Orders";
+    Layout = "_AdminLayout";
+}
+
+<h2 style="font-family: 'Playfair Display', serif;" class="mb-4">Orders In Storage</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<div class="card">
+    <div class="card-body">
+        @if (!Model.Any())
+        {
+            <p class="text-muted mb-0">No orders currently in storage.</p>
+        }
+        else
+        {
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Customer</th>
+                        <th>Service</th>
+                        <th>Days in Storage</th>
+                        <th>Fee Accrued</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        var daysInStorage = order.StorageStartDate.HasValue
+                        ? (DateTime.UtcNow - order.StorageStartDate.Value).Days
+                        : 0;
+                        var feeSoFar = daysInStorage * 20;
+                        var eligible = daysInStorage >= 60;
+
+                        <tr>
+                            <td class="fw-semibold">#@order.OrderID</td>
+                            <td>@order.Customer?.FullName</td>
+                            <td>@order.Service?.Name</td>
+                            <td>
+                                @daysInStorage day(s)
+                                @if (eligible)
+                                {
+                                    <span class="badge" style="background-color: var(--estate-oak);">Eligible</span>
+                                }
+                            </td>
+                            <td>R@(feeSoFar.ToString("0.00"))</td>
+                            <td class="text-end">
+                                <form asp-action="DonateOrder" asp-controller="Admin" method="post" class="d-inline"
+                                      onsubmit="return confirm('Mark Order #@order.OrderID as donated? This cannot be undone.');">
+                                    <input type="hidden" name="orderId" value="@order.OrderID" />
+                                    <button type="submit" class="btn btn-sm btn-caution" @(eligible ? "" : "disabled")>
+                                        <i class="fa-solid fa-box-open"></i> Donate
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

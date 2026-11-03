@@ -1,0 +1,179 @@
+﻿@model IEnumerable<EstateFresh.Models.Order>
+
+@{
+    ViewData["Title"] = "Driver Dashboard - Estate Fresh";
+}
+
+<div class="container mt-4" style="max-width: 1100px;">
+    <h2 style="font-family: 'Playfair Display', serif;">My Assigned Pickups</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No orders assigned to you yet.</div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var order in Model)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm rounded-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Order #@order.OrderID</h5>
+                            <p class="text-muted">@order.Service?.Name</p>
+                            <p><strong>Customer:</strong> @order.Customer?.FullName</p>
+                            <p><strong>Status:</strong> <span class="badge bg-warning" id="status-badge-@order.OrderID">@order.Status</span></p>
+
+                            @if (TempData["SuccessOrderId"] != null && (int)TempData["SuccessOrderId"] == order.OrderID)
+                            {
+                                <div class="alert alert-success py-2 px-3 mb-2" style="font-size: 0.9rem;">
+                                    @TempData["SuccessMessage"]
+                                </div>
+                            }
+
+                            @{
+                                var rainWarnings = ViewBag.RainWarnings as Dictionary<int, bool>;
+                                var hasRainWarning = rainWarnings != null && rainWarnings.ContainsKey(order.OrderID) && rainWarnings[order.OrderID];
+                            }
+                            @if (hasRainWarning)
+                            {
+                                <div class="alert alert-warning py-2 px-3 mb-2" style="font-size: 0.85rem;">
+                                    <i class="fa-solid fa-cloud-showers-heavy"></i> Rain forecast for pickup
+                                </div>
+                            }
+                            @if (order.Status == "In Storage")
+                            {
+                                var daysInStorage = order.StorageStartDate.HasValue
+                                ? (DateTime.UtcNow - order.StorageStartDate.Value).Days
+                                : 0;
+                                <p class="text-danger mb-1"><strong>In Storage:</strong> @daysInStorage day(s)</p>
+                                <p class="text-muted small mb-0">Awaiting Admin review for donation after 60 days.</p>
+                            }
+                            else if (!order.ActualWeightKg.HasValue)
+                            {
+                                <p class="text-danger">Weight not recorded yet</p>
+
+                                @if (order.MissedPickupAttempts > 0)
+                                {
+                                    <p class="text-muted small">Missed attempts: @order.MissedPickupAttempts / 2</p>
+                                }
+
+                                <a href="@Url.Action("RecordWeight", "Driver", new { orderId = order.OrderID })" class="btn btn-primary btn-sm w-100 mt-2">
+                                    <i class="fa-solid fa-weight-scale"></i> Record Weight
+                                </a>
+
+                                <form asp-action="RecordFailedPickup" asp-controller="Driver" method="post" class="mt-2"
+                                      onsubmit="return confirm('Record a failed pickup attempt for this order?');">
+                                    <input type="hidden" name="orderId" value="@order.OrderID" />
+                                    <button type="submit" class="btn btn-outline-caution btn-sm w-100">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Record Failed Pickup
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <p><strong>Weight:</strong> @order.ActualWeightKg.Value.ToString("0.00") kg</p>
+                                <p><strong>Subtotal:</strong> R@(order.Subtotal?.ToString("0.00"))</p>
+
+                                <div id="action-area-@order.OrderID">
+                                    @if (order.Status == "Processing")
+                                    {
+                                        <button class="btn btn-primary btn-sm w-100 mt-2" onclick="updateOrderStatus(@order.OrderID, 'Out for Delivery', this)">
+                                            <i class="fa-solid fa-truck"></i> Mark Out for Delivery
+                                        </button>
+                                    }
+                                    else if (order.Status == "Out for Delivery")
+                                    {
+                                        <button class="btn btn-primary btn-sm w-100 mt-2" onclick="updateOrderStatus(@order.OrderID, 'Delivered', this)">
+                                            <i class="fa-solid fa-circle-check"></i> Mark Delivered
+                                        </button>
+                                    }
+                                    else if (order.Status == "Delivered")
+                                    {
+                                        <p class="text-success mb-0 mt-2"><i class="fa-solid fa-circle-check"></i> Delivered - awaiting balance payment</p>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<script>
+    let locationSharingStarted = false;
+
+    function startSharingLocation() {
+        if (locationSharingStarted) return;
+        locationSharingStarted = true;
+
+        shareLocation();
+        setInterval(shareLocation, 15000);
+    }
+
+    function shareLocation() {
+        if (!navigator.geolocation) return;
+
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            try {
+                const formData = new FormData();
+                formData.append('latitude', position.coords.latitude);
+                formData.append('longitude', position.coords.longitude);
+                await fetch('/Driver/UpdateLocation', { method: 'POST', body: formData });
+            } catch (err) {
+                console.error('Location update failed:', err);
+            }
+        }, (err) => {
+            console.error('Geolocation error:', err);
+        });
+    }
+
+    async function updateOrderStatus(orderId, newStatus, btnEl) {
+        if (newStatus === 'Out for Delivery') {
+            startSharingLocation();
+        }
+
+        btnEl.disabled = true;
+        const originalText = btnEl.innerHTML;
+        btnEl.innerHTML = 'Updating...';
+
+        try {
+            const formData = new FormData();
+            formData.append('orderId', orderId);
+            formData.append('status', newStatus);
+
+            const response = await fetch('/Driver/UpdateStatus', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById('status-badge-' + orderId).textContent = newStatus;
+                const actionArea = document.getElementById('action-area-' + orderId);
+
+                if (newStatus === 'Out for Delivery') {
+                    actionArea.innerHTML = '<button class="btn btn-primary btn-sm w-100 mt-2" onclick="updateOrderStatus(' + orderId + ', \'Delivered\', this)"><i class="fa-solid fa-circle-check"></i> Mark Delivered</button>';
+                } else if (newStatus === 'Delivered') {
+                    actionArea.innerHTML = '<p class="text-success mb-0 mt-2"><i class="fa-solid fa-circle-check"></i> Delivered - awaiting balance payment</p>';
+                }
+            } else {
+                alert(data.message || 'Something went wrong. Please try again.');
+                btnEl.disabled = false;
+                btnEl.innerHTML = originalText;
+            }
+        } catch (err) {
+            alert('Network error - please try again.');
+            btnEl.disabled = false;
+            btnEl.innerHTML = originalText;
+        }
+    }
+
+    @if (Model.Any(o => o.Status == "Out for Delivery"))
+    {
+            <text>startSharingLocation();</text>
+    }
+</script>

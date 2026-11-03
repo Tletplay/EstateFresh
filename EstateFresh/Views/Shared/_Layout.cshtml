@@ -1,0 +1,288 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Estate Fresh</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Estate Fresh fonts: Instrument Serif (headings) + Instrument Sans (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- Estate Fresh Custom CSS (asp-append-version makes the browser reload it whenever the file changes) -->
+    <link rel="stylesheet" href="~/css/estatefresh.css" asp-append-version="true" />
+
+    <style>
+        .nav-link {
+            color: #2B2B2B !important;
+        }
+
+            .nav-link:hover {
+                color: #5F7D69 !important;
+            }
+
+        .footer {
+            background-color: #FFFFFF;
+            border-top: 1px solid #eee;
+            padding: 1.5rem 0;
+            margin-top: 3rem;
+        }
+    </style>
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    @{
+        var overHero = (ViewData["NavOverHero"] as bool?) == true;
+    }
+    <nav class="navbar navbar-expand-lg sticky-top @(overHero ? "nav-over-hero" : "")" style="background-color: #FFFFFF; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" asp-controller="Dashboard" asp-action="Index">
+                <img src="@Url.Content("~/images/" + (overHero ? "eagle-cream.png" : "eagle-green.png"))" alt="" style="height: 34px; width: auto; margin-right: 10px;" />
+                Estate Fresh
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    @{
+                        var userEmail = Context.Session.GetString("UserEmail");
+                        var fullName = Context.Session.GetString("FullName");
+                        var role = Context.Session.GetString("Role");
+                    }
+                    @if (!string.IsNullOrEmpty(userEmail))
+                    {
+                        @* Customer Links *@
+                        @if (role == "Customer")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" href="@Url.Action("BookPickup", "Order")">
+                                    <i class="fa-solid fa-calendar-plus"></i> Book Pickup
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="@Url.Action("MyOrders", "Order")">
+                                    <i class="fa-solid fa-list"></i> My Orders
+                                </a>
+                            </li>
+                        }
+
+                        @* Driver Links *@
+                        @if (role == "Driver")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" href="@Url.Action("Dashboard", "Driver")">
+                                    <i class="fa-solid fa-truck"></i> My Pickups
+                                </a>
+                            </li>
+                        }
+
+                        @* User Menu *@
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fa-regular fa-user"></i> @fullName
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <form asp-controller="Account" asp-action="Logout" method="post">
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fa-solid fa-sign-out-alt"></i> Logout
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Account" asp-action="Login">
+                                <i class="fa-solid fa-sign-in-alt"></i> Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Account" asp-action="Register">
+                                <i class="fa-solid fa-user-plus"></i> Register
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        @RenderBody()
+    </main>
+
+    @{
+        var footerLoggedIn = !string.IsNullOrEmpty(Context.Session.GetString("UserEmail"));
+        var footerRole = Context.Session.GetString("Role");
+        var footerFlush = (ViewData["NavOverHero"] as bool?) == true;
+        var homeUrl = Url.Action("Index", "Home");
+    }
+
+    <style>
+        .site-footer {
+            background: #0F1A14;
+            color: rgba(250,250,247,.78);
+            margin-top: 3rem;
+            padding: 3.5rem 0 1.5rem;
+            border-top: 1px solid rgba(176,138,98,.35);
+        }
+
+            .site-footer.footer-flush {
+                margin-top: 0;
+            }
+
+            .site-footer a {
+                color: rgba(250,250,247,.78);
+                text-decoration: none;
+                transition: color .2s ease;
+            }
+
+                .site-footer a:hover {
+                    color: #A8C3A0;
+                }
+
+            .site-footer h4 {
+                font-size: 1.3rem;
+                color: #FAFAF7;
+                margin: 0 0 1rem;
+            }
+
+            .site-footer ul {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
+
+            .site-footer li {
+                margin-bottom: .6rem;
+            }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            font-family: var(--font-heading);
+            font-size: 1.8rem;
+            color: #FAFAF7;
+            margin-bottom: 1rem;
+        }
+
+            .footer-brand img {
+                height: 40px;
+                width: auto;
+            }
+
+        .footer-note {
+            max-width: 22rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 2.5rem;
+            padding-top: 1.2rem;
+            border-top: 1px solid rgba(250,250,247,.12);
+            font-size: .9rem;
+            color: rgba(250,250,247,.6);
+        }
+
+            .footer-bottom img {
+                height: 26px;
+                width: auto;
+                opacity: .55;
+            }
+    </style>
+
+    <footer class="site-footer @(footerFlush ? "footer-flush" : "")">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <div class="footer-brand">
+                        <img src="@Url.Content("~/images/eagle-cream.png")" alt="" />
+                        Estate Fresh
+                    </div>
+                    <p class="footer-note">
+                        Laundry collected from your door, weighed in front of you,
+                        and returned washed and pressed.
+                    </p>
+                </div>
+
+                <div class="col-6 col-lg-2">
+                    <h4>Explore</h4>
+                    <ul>
+                        <li><a href="@(homeUrl + "#services")">Services</a></li>
+                        <li><a href="@(homeUrl + "#about")">About us</a></li>
+                        <li><a href="@(homeUrl + "#contact")">Contact us</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-6 col-lg-2">
+                    <h4>Account</h4>
+                    <ul>
+                        @if (!footerLoggedIn)
+                        {
+                            <li><a href="@Url.Action("Login", "Account")">Login</a></li>
+                            <li><a href="@Url.Action("Register", "Account")">Register</a></li>
+                        }
+                        else if (footerRole == "Customer")
+                        {
+                            <li><a href="@Url.Action("BookPickup", "Order")">Book a pickup</a></li>
+                            <li><a href="@Url.Action("MyOrders", "Order")">My orders</a></li>
+                        }
+                        else if (footerRole == "Driver")
+                        {
+                            <li><a href="@Url.Action("Dashboard", "Driver")">My pickups</a></li>
+                        }
+                        else
+                        {
+                            <li><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
+                        }
+                    </ul>
+                </div>
+
+                <div class="col-12 col-lg-3">
+                    <h4>Where we serve</h4>
+                    <ul>
+                        <li>Zimbali Coastal Resort,<br />Ballito</li>
+                        <li><a href="@(homeUrl + "#contact")">Get in touch</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <span>&copy; @DateTime.Now.Year Estate Fresh. Premium laundry concierge for Zimbali Coastal Resort.</span>
+                <img src="@Url.Content("~/images/eagle-cream.png")" alt="" />
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- jQuery (required for validation) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- jQuery Validation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

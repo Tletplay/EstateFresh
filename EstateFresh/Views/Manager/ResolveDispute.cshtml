@@ -1,0 +1,50 @@
+﻿@model EstateFresh.Models.Order
+
+@{
+    ViewData["Title"] = "Resolve Dispute";
+    Layout = "_AdminLayout";
+}
+
+<h2 style="font-family: 'Playfair Display', serif;">Resolve Dispute — Order #@Model.OrderID</h2>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<div class="card mb-4" style="max-width: 700px;">
+    <div class="card-body">
+        <p><strong>Customer:</strong> @Model.Customer?.FullName</p>
+        <p><strong>Service:</strong> @Model.Service?.Name</p>
+        <p><strong>Recorded Weight:</strong> @Model.ActualWeightKg?.ToString("0.00") kg</p>
+        <p><strong>Current Subtotal:</strong> R@(Model.Subtotal?.ToString("0.00"))</p>
+        <p><strong>Customer's Dispute Reason:</strong></p>
+        <p class="text-muted fst-italic">"@Model.DisputeReason"</p>
+    </div>
+</div>
+
+<div class="card" style="max-width: 700px;">
+    <div class="card-body">
+        <form asp-action="ResolveDispute" asp-controller="Manager" method="post">
+            <input type="hidden" name="orderId" value="@Model.OrderID" />
+
+            <div class="mb-3">
+                <label class="form-label">Corrected Weight (kg) — leave blank to uphold the original weight</label>
+                <input type="number" step="0.01" name="correctedWeight" class="form-control" placeholder="@Model.ActualWeightKg?.ToString("0.00")" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Resolution Note (visible to customer)</label>
+                <textarea name="resolutionNote" class="form-control" rows="3" required
+                          placeholder="e.g. We re-weighed and confirmed the original reading was correct."></textarea>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-check"></i> Submit Resolution
+                </button>
+                <a href="@Url.Action("WeightDisputes")" class="btn btn-outline-estate">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

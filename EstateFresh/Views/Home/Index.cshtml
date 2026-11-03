@@ -1,0 +1,593 @@
+﻿@{
+    ViewData["Title"] = "Home";
+    ViewData["NavOverHero"] = true;
+    var loggedIn = !string.IsNullOrEmpty(Context.Session.GetString("UserEmail"));
+
+    // ===== REPLACE THESE WITH YOUR REAL CONTACT DETAILS =====
+    var contactEmail = "hello@example.com";
+    var contactPhoneDisplay = "000 000 0000";
+    var contactPhoneLink = "0000000000";   // digits only, used for tap-to-call
+    // ========================================================
+
+    // ===== REPLACE WITH YOUR REAL SNEAKER PRICE, e.g. "R50 per pair" =====
+    var sneakerPrice = "Priced per pair";
+    // ======================================================================
+}
+
+@section Styles {
+    <style>
+        :root {
+            --ridge-h: clamp(60px, 9vw, 110px);
+        }
+
+        /* ===== Glass top bar (only on this page) ===== */
+        .navbar.nav-over-hero {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            border-bottom: 1px solid transparent;
+            transition: background-color .35s ease, border-color .35s ease, padding .35s ease;
+        }
+
+            .navbar.nav-over-hero.is-scrolled {
+                background-color: rgba(22,37,29,.55) !important;
+                -webkit-backdrop-filter: blur(16px) saturate(1.3);
+                backdrop-filter: blur(16px) saturate(1.3);
+                border-bottom-color: rgba(250,250,247,.14);
+                padding: .55rem 0;
+            }
+
+        .nav-over-hero .navbar-brand,
+        .nav-over-hero .nav-link {
+            color: var(--estate-warm-white) !important;
+        }
+
+            .nav-over-hero .nav-link:hover {
+                color: var(--estate-sage) !important;
+            }
+
+        .nav-over-hero .navbar-toggler {
+            border-color: rgba(250,250,247,.5);
+        }
+
+        .nav-over-hero .navbar-toggler-icon {
+            filter: invert(1);
+        }
+
+        .nav-over-hero .navbar-collapse.show {
+            background: rgba(22,37,29,.92);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: .5rem;
+        }
+
+        /* ===== Hero ===== */
+        .landing-hero {
+            position: relative;
+            min-height: 100vh;
+            min-height: 100svh;
+            display: flex;
+            align-items: center;
+            color: var(--estate-warm-white);
+            background-image: url('@Url.Content("~/images/hero-estate.jpg")');
+            background-size: cover;
+            background-position: 70% center;
+        }
+
+            .landing-hero::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(90deg, rgba(22,37,29,.92) 0%, rgba(22,37,29,.66) 42%, rgba(22,37,29,.10) 100%);
+            }
+
+            .landing-hero::after {
+                content: "";
+                position: absolute;
+                inset: 0 0 auto 0;
+                height: 140px;
+                background: linear-gradient(180deg, rgba(22,37,29,.55), transparent);
+            }
+
+        .landing-copy {
+            position: relative;
+            z-index: 2;
+            max-width: 44rem;
+            padding: 6rem 0 6rem;
+            animation: landing-rise .9s ease-out both;
+        }
+
+            .landing-copy h1 {
+                color: var(--estate-warm-white);
+                font-size: clamp(2.8rem, 6vw, 5.2rem);
+                line-height: 1;
+                letter-spacing: -0.01em;
+                margin: 0;
+            }
+
+            .landing-copy p {
+                margin: 1.4rem 0 0;
+                max-width: 30rem;
+                font-size: 1.12rem;
+                line-height: 1.55;
+                opacity: .92;
+            }
+
+        .landing-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .9rem;
+            margin-top: 2.1rem;
+        }
+
+        .landing-btn, .landing-btn-ghost {
+            display: inline-block;
+            padding: .95rem 1.9rem;
+            border-radius: 999px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all .2s ease;
+        }
+
+        .landing-btn {
+            background: var(--estate-oak);
+            color: var(--estate-warm-white);
+            box-shadow: 0 10px 24px rgba(0,0,0,.25);
+        }
+
+            .landing-btn:hover {
+                background: #6f5538;
+                color: var(--estate-warm-white);
+                transform: translateY(-1px);
+            }
+
+        .landing-btn-ghost {
+            border: 1px solid rgba(250,250,247,.55);
+            color: var(--estate-warm-white);
+        }
+
+            .landing-btn-ghost:hover {
+                background: rgba(250,250,247,.12);
+                color: var(--estate-warm-white);
+            }
+
+        /* ===== Coastal ridge divider (the colour of the NEXT section is set on each one) ===== */
+        .ridge {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -1px;
+            z-index: 3;
+            line-height: 0;
+        }
+
+            .ridge svg {
+                display: block;
+                width: 100%;
+                height: var(--ridge-h);
+            }
+
+        .ridge-back {
+            fill: #A8C3A0;
+            opacity: .38;
+        }
+
+        .ridge-front {
+            fill: var(--next);
+        }
+
+        /* ===== Shared section styles ===== */
+        .band {
+            position: relative;
+            padding: 5rem 0 calc(2.5rem + var(--ridge-h));
+            scroll-margin-top: 70px;
+        }
+
+        .band-services {
+            background: #FAFAF7;
+        }
+
+        .band-about {
+            background: #F1EEE4;
+        }
+
+        .band-contact {
+            background: #16251D;
+            color: var(--estate-warm-white);
+            padding-bottom: 5rem;
+        }
+
+        .band h2 {
+            font-size: clamp(2.2rem, 4vw, 3.2rem);
+            color: #16251D;
+            line-height: 1.05;
+            margin: 0 0 1rem;
+        }
+
+        .band-contact h2 {
+            color: var(--estate-warm-white);
+        }
+
+        .band-lead {
+            font-size: 1.1rem;
+            line-height: 1.65;
+            color: #4a5a50;
+            max-width: 34rem;
+        }
+
+        .band-contact .band-lead {
+            color: rgba(250,250,247,.8);
+        }
+
+        /* ===== Services ===== */
+        .service-card {
+            position: relative;
+            background: #fff;
+            border-radius: 16px;
+            padding: 1.8rem;
+            height: 100%;
+            box-shadow: 0 4px 12px var(--estate-shadow);
+            border-top: 3px solid var(--estate-oak);
+            display: flex;
+            flex-direction: column;
+        }
+
+            .service-card i.service-icon {
+                color: var(--estate-eucalyptus);
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+                display: block;
+            }
+
+            .service-card h3 {
+                font-size: 1.65rem;
+                margin: 0 0 .2rem;
+                color: #16251D;
+            }
+
+        .service-price {
+            font-weight: 600;
+            color: var(--estate-oak);
+            margin: 0 0 .9rem;
+        }
+
+        .service-desc {
+            margin: 0;
+            color: #4a5a50;
+            line-height: 1.6;
+        }
+
+        .service-best {
+            margin: 1.1rem 0 0;
+            padding-top: .9rem;
+            border-top: 1px solid rgba(138,106,74,.25);
+            font-size: .92rem;
+            line-height: 1.5;
+            color: #4a5a50;
+        }
+
+            .service-best strong {
+                color: #16251D;
+                font-weight: 600;
+            }
+
+        .service-tag {
+            position: absolute;
+            top: 1.3rem;
+            right: 1.3rem;
+            font-size: .75rem;
+            font-weight: 600;
+            padding: .2rem .7rem;
+            border-radius: 999px;
+            border: 1px solid var(--estate-oak);
+            color: var(--estate-oak);
+        }
+
+        /* ===== About ===== */
+        .about-point {
+            display: flex;
+            gap: 1rem;
+            padding: 1.2rem 0;
+            border-bottom: 1px solid rgba(138,106,74,.25);
+        }
+
+            .about-point:last-child {
+                border-bottom: 0;
+            }
+
+            .about-point i {
+                color: var(--estate-eucalyptus);
+                font-size: 1.3rem;
+                width: 1.6rem;
+                margin-top: .35rem;
+            }
+
+            .about-point h3 {
+                font-size: 1.5rem;
+                margin: 0 0 .2rem;
+                color: #16251D;
+            }
+
+            .about-point p {
+                margin: 0;
+                color: #4a5a50;
+                line-height: 1.55;
+            }
+
+        /* ===== Contact ===== */
+        .contact-card {
+            display: block;
+            height: 100%;
+            padding: 1.6rem;
+            border-radius: 16px;
+            background: rgba(250,250,247,.06);
+            border: 1px solid rgba(250,250,247,.16);
+            color: var(--estate-warm-white);
+            text-decoration: none;
+            transition: background .2s ease, border-color .2s ease;
+        }
+
+        a.contact-card:hover {
+            background: rgba(250,250,247,.11);
+            border-color: rgba(176,138,98,.7);
+            color: var(--estate-warm-white);
+        }
+
+        .contact-card i {
+            color: var(--estate-sage);
+            font-size: 1.4rem;
+            margin-bottom: .9rem;
+            display: block;
+        }
+
+        .contact-card h3 {
+            font-size: 1.5rem;
+            margin: 0 0 .3rem;
+            color: var(--estate-warm-white);
+        }
+
+        .contact-card p {
+            margin: 0;
+            color: rgba(250,250,247,.8);
+            word-break: break-word;
+        }
+
+        .footer {
+            margin-top: 0;
+        }
+
+        @@keyframes landing-rise {
+            from {
+                opacity: 0;
+                transform: translateY(18px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        @@media (prefers-reduced-motion: reduce) {
+            .landing-copy {
+                animation: none;
+            }
+        }
+
+        @@media (max-width: 760px) {
+            .landing-hero::before {
+                background: linear-gradient(180deg, rgba(22,37,29,.88), rgba(22,37,29,.45));
+            }
+        }
+    </style>
+}
+
+<!-- ===================== HERO ===================== -->
+<section class="landing-hero">
+    <div class="container">
+        <div class="landing-copy">
+            <h1>Your wardrobe, cared for like it's our own</h1>
+            <p>
+                A laundry concierge for Zimbali Coastal Resort. We collect your sealed bags,
+                weigh them in front of you, and return everything washed and pressed.
+            </p>
+            <div class="landing-actions">
+                @if (loggedIn)
+                {
+                    <a class="landing-btn" href="@Url.Action("BookPickup", "Order")">Book a pickup</a>
+                    <a class="landing-btn-ghost" href="@Url.Action("MyOrders", "Order")">My orders</a>
+                }
+                else
+                {
+                    <a class="landing-btn" href="@Url.Action("Register", "Account")">Book a pickup</a>
+                    <a class="landing-btn-ghost" href="@Url.Action("Login", "Account")">Log in</a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="ridge" style="--next:#FAFAF7" aria-hidden="true">
+        <svg viewBox="0 0 1200 90" preserveAspectRatio="none">
+            <path class="ridge-back" d="M0 90V38C140 6 250 10 360 36C500 70 590 6 730 10C880 14 960 60 1080 40C1130 32 1170 22 1200 26V90Z" />
+            <path class="ridge-front" d="M0 90V58C120 26 220 26 330 52C470 86 560 28 700 30C860 32 940 74 1060 56C1120 48 1170 40 1200 46V90Z" />
+        </svg>
+    </div>
+</section>
+
+<!-- ===================== SERVICES ===================== -->
+<section class="band band-services" id="services">
+    <div class="container">
+        <h2>Our services</h2>
+        <p class="band-lead">
+            Choose how you'd like your laundry cared for, then add sneaker cleaning to any pickup if you'd like.
+        </p>
+
+        <div class="row g-4 mt-3">
+            <div class="col-md-6 col-lg-3">
+                <div class="service-card">
+                    <i class="fa-solid fa-bolt service-icon" aria-hidden="true"></i>
+                    <h3>Express 24hr</h3>
+                    <p class="service-price">R36 per kg</p>
+                    <p class="service-desc">
+                        Your laundry is collected, washed and pressed, then back at your door within 24 hours.
+                        Priced by weight, which is measured in front of you at pickup.
+                    </p>
+                    <p class="service-best"><strong>Best for:</strong> busy weeks, travel and last-minute outfits.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="service-card">
+                    <i class="fa-solid fa-droplet service-icon" aria-hidden="true"></i>
+                    <h3>Eco Water-Saver</h3>
+                    <p class="service-price">R36 per kg</p>
+                    <p class="service-desc">
+                        A wash that uses less water, with the same careful pressing and the same price per kilogram.
+                        A thoughtful choice when you're not in a rush.
+                    </p>
+                    <p class="service-best"><strong>Best for:</strong> everyday clothes, towels and bed linen.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="service-card">
+                    <i class="fa-solid fa-shirt service-icon" aria-hidden="true"></i>
+                    <h3>Premium Press Only</h3>
+                    <p class="service-price">R12 per item</p>
+                    <p class="service-desc">
+                        Already clean? We'll press each piece to a crisp finish.
+                        Priced per item instead of by weight, so you only pay for what you send.
+                    </p>
+                    <p class="service-best"><strong>Best for:</strong> shirts, dresses and formal wear.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="service-card">
+                    <span class="service-tag">Add-on</span>
+                    <i class="fa-solid fa-shoe-prints service-icon" aria-hidden="true"></i>
+                    <h3>Sneaker cleaning</h3>
+                    <p class="service-price">@sneakerPrice</p>
+                    <p class="service-desc">
+                        Add one or two pairs to any pickup and we'll clean them along with your laundry.
+                        You choose the number of pairs when you book.
+                    </p>
+                    <p class="service-best"><strong>Best for:</strong> white trainers, gym shoes and everyday sneakers.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5">
+            @if (loggedIn)
+            {
+                <a class="landing-btn" href="@Url.Action("BookPickup", "Order")">Book a pickup</a>
+            }
+            else
+            {
+                <a class="landing-btn" href="@Url.Action("Register", "Account")">Book a pickup</a>
+            }
+        </div>
+    </div>
+
+    <div class="ridge" style="--next:#F1EEE4" aria-hidden="true">
+        <svg viewBox="0 0 1200 90" preserveAspectRatio="none">
+            <path class="ridge-back" d="M0 90V38C140 6 250 10 360 36C500 70 590 6 730 10C880 14 960 60 1080 40C1130 32 1170 22 1200 26V90Z" />
+            <path class="ridge-front" d="M0 90V58C120 26 220 26 330 52C470 86 560 28 700 30C860 32 940 74 1060 56C1120 48 1170 40 1200 46V90Z" />
+        </svg>
+    </div>
+</section>
+
+<!-- ===================== ABOUT ===================== -->
+<section class="band band-about" id="about">
+    <div class="container">
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-5">
+                <h2>About us</h2>
+                <p class="band-lead">
+                    Estate Fresh is a laundry concierge made for the residents of Zimbali Coastal Resort.
+                    Book online, and a vetted driver collects your sealed bags, weighs them in front of you,
+                    and brings everything back washed and pressed.
+                </p>
+            </div>
+            <div class="col-lg-7">
+                <div class="about-point">
+                    <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>
+                    <div>
+                        <h3>Weighed in front of you</h3>
+                        <p>Your laundry is weighed on the spot, so the price is clear from the start.</p>
+                    </div>
+                </div>
+                <div class="about-point">
+                    <i class="fa-solid fa-credit-card" aria-hidden="true"></i>
+                    <div>
+                        <h3>Your driver never handles money</h3>
+                        <p>Pay a R50 deposit when you book and the balance after delivery, all online.</p>
+                    </div>
+                </div>
+                <div class="about-point">
+                    <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                    <div>
+                        <h3>Built for the estate</h3>
+                        <p>Our drivers are vetted, and gate access is arranged with your permission.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ridge" style="--next:#16251D" aria-hidden="true">
+        <svg viewBox="0 0 1200 90" preserveAspectRatio="none">
+            <path class="ridge-back" d="M0 90V38C140 6 250 10 360 36C500 70 590 6 730 10C880 14 960 60 1080 40C1130 32 1170 22 1200 26V90Z" />
+            <path class="ridge-front" d="M0 90V58C120 26 220 26 330 52C470 86 560 28 700 30C860 32 940 74 1060 56C1120 48 1170 40 1200 46V90Z" />
+        </svg>
+    </div>
+</section>
+
+<!-- ===================== CONTACT ===================== -->
+<section class="band band-contact" id="contact">
+    <div class="container">
+        <h2>Contact us</h2>
+        <p class="band-lead">
+            Questions about a pickup, a price or your order? Reach out and we'll help.
+        </p>
+
+        <div class="row g-4 mt-3">
+            <div class="col-md-4">
+                <a class="contact-card" href="@("mailto:" + contactEmail)">
+                    <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+                    <h3>Email</h3>
+                    <p>@contactEmail</p>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a class="contact-card" href="@("tel:" + contactPhoneLink)">
+                    <i class="fa-solid fa-phone" aria-hidden="true"></i>
+                    <h3>Phone</h3>
+                    <p>@contactPhoneDisplay</p>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <div class="contact-card">
+                    <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                    <h3>Where we serve</h3>
+                    <p>Zimbali Coastal Resort, Ballito</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        (function () {
+            var nav = document.querySelector('.navbar.nav-over-hero');
+            if (!nav) return;
+            function update() {
+                nav.classList.toggle('is-scrolled', window.scrollY > 40);
+            }
+            update();
+            window.addEventListener('scroll', update, { passive: true });
+        })();
+    </script>
+}

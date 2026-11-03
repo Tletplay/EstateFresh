@@ -1,0 +1,269 @@
+﻿/* Estate Fresh Design System */
+
+/* Google Fonts - this line must stay at the very top of the file */
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Instrument+Serif:ital@0;1&display=swap');
+
+/* Color Palette + Fonts */
+:root {
+    --estate-white: #FFFFFF;
+    --estate-warm-white: #FAFAF7;
+    --estate-sage: #A8C3A0;
+    --estate-eucalyptus: #5F7D69;
+    --estate-oak: #8A6A4A;
+    --estate-text: #2B2B2B;
+    --estate-shadow: rgba(0, 0, 0, 0.05);
+    /* One font family used across the whole site */
+    --font-heading: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+    --font-body: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+    --bs-body-font-family: var(--font-body);
+}
+
+/* Base Styles */
+body {
+    font-family: var(--font-body);
+    color: var(--estate-text);
+    background-color: var(--estate-warm-white);
+}
+
+/* Instrument Serif has only one weight, so headings stay at 400 */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 400;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--estate-eucalyptus);
+    border-color: var(--estate-eucalyptus);
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+    .btn-primary:hover {
+        background-color: var(--estate-sage);
+        border-color: var(--estate-sage);
+        transform: translateY(-1px);
+    }
+
+.btn-success {
+    background-color: var(--estate-sage);
+    border-color: var(--estate-sage);
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    color: var(--estate-text);
+}
+
+    .btn-success:hover {
+        background-color: var(--estate-eucalyptus);
+        border-color: var(--estate-eucalyptus);
+        color: white;
+    }
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px var(--estate-shadow);
+    transition: box-shadow 0.2s ease;
+}
+
+    .card:hover {
+        box-shadow: 0 8px 24px var(--estate-shadow);
+    }
+
+/* Form Controls */
+.form-control, .form-select {
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    padding: 12px 16px;
+}
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--estate-sage);
+        box-shadow: 0 0 0 0.2rem rgba(168, 195, 160, 0.25);
+    }
+
+/* Navbar */
+.navbar {
+    background-color: var(--estate-white) !important;
+    box-shadow: 0 2px 8px var(--estate-shadow);
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    font-weight: 400;
+    color: var(--estate-eucalyptus) !important;
+}
+
+/* Alerts */
+.alert-success {
+    background-color: var(--estate-sage);
+    border: none;
+    color: var(--estate-text);
+    border-radius: 12px;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border: none;
+    border-radius: 12px;
+}
+
+/* Footer */
+.footer {
+    background-color: var(--estate-white);
+    border-top: 1px solid #eee;
+    padding: 2rem 0;
+    margin-top: 4rem;
+}
+
+/* Links */
+a {
+    color: var(--estate-eucalyptus);
+    text-decoration: none;
+}
+
+    a:hover {
+        color: var(--estate-sage);
+    }
+
+/* Outline button matching Estate Fresh palette (replaces Bootstrap's default blue outline) */
+.btn-outline-estate {
+    color: var(--estate-eucalyptus);
+    border: 1px solid var(--estate-eucalyptus);
+    border-radius: 12px;
+    background: transparent;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+    .btn-outline-estate:hover {
+        background-color: var(--estate-eucalyptus);
+        color: white;
+    }
+
+/* Caution buttons - for disputes/warnings, warm oak tone instead of harsh red */
+.btn-caution {
+    background-color: var(--estate-oak);
+    border-color: var(--estate-oak);
+    color: white;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+    .btn-caution:hover {
+        background-color: #6f5538;
+        border-color: #6f5538;
+        color: white;
+    }
+
+.btn-outline-caution {
+    color: var(--estate-oak);
+    border: 1px solid var(--estate-oak);
+    border-radius: 12px;
+    background: transparent;
+    font-weight: 600;
+}
+
+    .btn-outline-caution:hover {
+        background-color: var(--estate-oak);
+        color: white;
+    }
+
+/* Status badges matching the palette instead of Bootstrap's default yellow/green */
+.badge-estate-complete {
+    background-color: var(--estate-sage);
+    color: var(--estate-text);
+}
+
+.badge-estate-pending {
+    background-color: #E8C87E;
+    color: var(--estate-text);
+}
+
+
+/* ===== Visual rhyme: thin oak line on top of every card ===== */
+.card {
+    border-top: 3px solid var(--estate-oak) !important;
+}
+
+    /* Use class="card card-plain" on any card that should NOT have the line */
+    .card.card-plain {
+        border-top: 0 !important;
+    }
+
+
+/* ===== Visual rhyme: coastal ridge + photo page banner ===== */
+:root {
+    --ridge-h: clamp(60px, 9vw, 110px);
+}
+
+.ridge {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    z-index: 3;
+    line-height: 0;
+}
+
+    .ridge svg {
+        display: block;
+        width: 100%;
+        height: var(--ridge-h);
+    }
+
+.ridge-back {
+    fill: #A8C3A0;
+    opacity: .38;
+}
+
+.ridge-front {
+    fill: var(--next, #FAFAF7);
+}
+
+/* A photo banner for the top of inner pages (dashboard, orders, etc.) */
+.page-banner {
+    position: relative;
+    color: var(--estate-warm-white);
+    background-image: var(--banner-image);
+    background-size: cover;
+    background-position: 70% center;
+    padding: 3.5rem 0 calc(2rem + var(--ridge-h));
+}
+
+    .page-banner::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(22,37,29,.92) 0%, rgba(22,37,29,.66) 50%, rgba(22,37,29,.25) 100%);
+    }
+
+    .page-banner > .container {
+        position: relative;
+        z-index: 2;
+    }
+
+    .page-banner h1 {
+        color: var(--estate-warm-white);
+        font-size: clamp(2.4rem, 5vw, 4rem);
+        line-height: 1.05;
+        margin: 0;
+    }
+
+    .page-banner p {
+        margin: .8rem 0 0;
+        font-size: 1.1rem;
+        opacity: .9;
+    }
+
+@media (max-width: 760px) {
+    .page-banner::before {
+        background: linear-gradient(180deg, rgba(22,37,29,.88), rgba(22,37,29,.5));
+    }
+}

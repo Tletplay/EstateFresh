@@ -1,0 +1,140 @@
+﻿@model EstateFresh.Models.BookPickupViewModel
+
+@{
+    ViewData["Title"] = "Book Pickup - Estate Fresh";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <i class="fa-solid fa-calendar-plus fa-2x" style="color: #5F7D69;"></i>
+                        <h2 class="mt-2" style="font-family: 'Playfair Display', serif;">Book Pickup</h2>
+                        <p class="text-muted">Schedule your laundry pickup in 6 simple steps</p>
+                    </div>
+
+                    <form asp-action="BookPickup" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <!-- Step 1: Choose Service -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Step 1: Choose Service</label>
+                            <div class="row">
+                                @foreach (var service in Model.Services ?? new List<EstateFresh.Models.Service>())
+                                {
+                                    <div class="col-md-4 mb-2">
+                                        <div class="form-check">
+                                            <input type="radio" asp-for="ServiceID" value="@service.ServiceID"
+                                                   class="form-check-input" id="service_@service.ServiceID" required />
+                                            <label class="form-check-label fw-semibold" for="service_@service.ServiceID">
+                                                @service.Name
+                                            </label>
+                                            <br />
+                                            <small class="text-muted">
+                                                @if (service.RatePerKg.HasValue)
+                                                {
+                                                    <span>R@(service.RatePerKg.Value)/kg</span>
+                                                }
+                                                else if (service.RatePerItem.HasValue)
+                                                {
+                                                    <span>R@(service.RatePerItem.Value)/item</span>
+                                                }
+                                            </small>
+                                            <br />
+                                            <small class="text-muted">@service.Description</small>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <span asp-validation-for="ServiceID" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Step 2: Pickup Address (Zimbali only for now) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Step 2: Pickup Address</label>
+                            <div class="p-3 rounded-3" style="background-color: #FAFAF7;">
+                                <i class="fa-solid fa-location-dot me-2" style="color: #5F7D69;"></i>
+                                Zimbali Coastal Resort, Ballito, 4420
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Pickup Date & Time -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Step 3: Pickup Date & Time</label>
+                            <select asp-for="PickupSlotID" class="form-select" required>
+                                <option value="">Select pickup slot</option>
+                                @foreach (var slot in Model.PickupSlots ?? new List<EstateFresh.Models.DeliverySlot>())
+                                {
+                                    <option value="@slot.SlotID">
+                                        @slot.SlotDate.ToString("dd MMM yyyy") - @slot.StartTime to @slot.EndTime
+                                    </option>
+                                }
+                            </select>
+                            <span asp-validation-for="PickupSlotID" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Step 4: Sneakers -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Step 4: Sneakers (R50/pair, max 2)</label>
+                            <select asp-for="SneakerPairs" class="form-select">
+                                <option value="0">0 pairs</option>
+                                <option value="1">1 pair (+R50)</option>
+                                <option value="2">2 pairs (+R100)</option>
+                            </select>
+                            <span asp-validation-for="SneakerPairs" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Step 5: Delivery Options -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Step 5: Delivery Options</label>
+                            <select asp-for="DeliverySlotID" class="form-select" required>
+                                <option value="">Select delivery slot</option>
+                                @foreach (var slot in Model.DeliverySlots ?? new List<EstateFresh.Models.DeliverySlot>())
+                                {
+                                    <option value="@slot.SlotID">
+                                        @slot.SlotDate.ToString("dd MMM yyyy") - @slot.StartTime to @slot.EndTime
+                                    </option>
+                                }
+                            </select>
+                            <span asp-validation-for="DeliverySlotID" class="text-danger small"></span>
+
+                            <div class="form-check mt-2">
+                                <input asp-for="GateDropoffAllowed" class="form-check-input" />
+                                <label asp-for="GateDropoffAllowed" class="form-check-label">
+                                    Permission to leave at security gate if no answer
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Step 6: Special Instructions -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Step 6: Special Instructions (Optional)</label>
+                            <textarea asp-for="SpecialInstructions" class="form-control" rows="3"
+                                      placeholder="Gate code, call upon arrival, etc."></textarea>
+                        </div>
+
+                        <!-- Deposit Summary -->
+                        <div class="mb-4 p-3 rounded-3" style="background-color: #A8C3A0;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold">Deposit Required:</span>
+                                <span class="fs-4 fw-bold">R50</span>
+                            </div>
+                            <small class="text-muted">Deposit deducted from final bill. Balance paid after delivery.</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                            <i class="fa-solid fa-credit-card me-2"></i>Proceed to Payment (R50 Deposit)
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

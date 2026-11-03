@@ -1,0 +1,36 @@
+﻿@model EstateFresh.Models.Order
+
+@{
+    ViewData["Title"] = "Record Weight - Estate Fresh";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <h3 style="font-family: 'Playfair Display', serif;">Record Weight</h3>
+                    <p><strong>Order #@Model.OrderID</strong></p>
+                    <p><strong>Service:</strong> @Model.Service?.Name</p>
+                    <p><strong>Sneakers:</strong> @Model.SneakerPairs pairs @(Model.SneakerPairs > 0 ? "(+R" + (Model.SneakerPairs * 50) + ")" : "")</p>
+
+                    <form asp-action="RecordWeight" method="post">
+                        <input type="hidden" name="orderId" value="@Model.OrderID" />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Actual Weight (kg)</label>
+                            <input type="number" name="actualWeightKg" step="0.1" min="0.1" max="20" class="form-control" required />
+                            <small class="text-muted">Max 20kg per order. Rate: R36/kg</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Save Weight & Confirm Pickup</button>
+                    </form>
+
+                    <p class="mt-3 text-muted small">
+                        <i class="fa-solid fa-info-circle"></i> Customer will be notified of final amount.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

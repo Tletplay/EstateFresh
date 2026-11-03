@@ -1,0 +1,77 @@
+﻿@model IEnumerable<EstateFresh.Models.User>
+
+@{
+    ViewData["Title"] = "Manage Users";
+    Layout = "_AdminLayout";
+    var roles = new[] { "All", "Customer", "Driver", "Manager", "Admin" };
+}
+
+<h2 style="font-family: 'Playfair Display', serif;" class="mb-4">Manage Users</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<div class="mb-3 d-flex gap-2">
+    @foreach (var role in roles)
+    {
+        var isActive = (string)ViewBag.SelectedRole == role;
+        <a href="@Url.Action("ManageUsers", new { roleFilter = role })"
+           class="btn btn-sm @(isActive ? "btn-primary" : "btn-outline-secondary")">
+            @role
+        </a>
+    }
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (!Model.Any())
+        {
+            <p class="text-muted mb-0">No users found for this filter.</p>
+        }
+        else
+        {
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@user.FullName</td>
+                            <td class="text-muted">@user.Email</td>
+                            <td><span class="badge bg-secondary">@user.Role</span></td>
+                            <td>
+                                @if (user.IsActive)
+                                {
+                                    <span class="badge" style="background-color:#A8C3A0; color:#2B2B2B;">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Deactivated</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a href="@Url.Action("EditUser", new { id = user.UserID })" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

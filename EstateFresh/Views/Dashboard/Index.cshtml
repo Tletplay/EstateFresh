@@ -1,0 +1,195 @@
+﻿@{
+    ViewData["Title"] = "Dashboard - Estate Fresh";
+    var fullName = Context.Session.GetString("FullName") ?? "Guest";
+    var role = Context.Session.GetString("Role") ?? "Customer";
+
+    var hour = DateTime.Now.Hour;
+    var greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
+    var services = ViewBag.Services as List<EstateFresh.Models.Service> ?? new List<EstateFresh.Models.Service>();
+
+    string IconFor(string name)
+    {
+        var n = (name ?? "").ToLower();
+        if (n.Contains("express")) return "fa-bolt";
+        if (n.Contains("eco")) return "fa-droplet";
+        return "fa-shirt";
+    }
+}
+
+@section Styles {
+    <style>
+        .svc-heading {
+            font-size: clamp(1.9rem, 3vw, 2.6rem);
+            color: #16251D;
+            margin: 0 0 .4rem;
+        }
+
+        .svc-sub {
+            color: #4a5a50;
+            margin: 0 0 1.5rem;
+        }
+
+        .svc-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 1.8rem;
+            background: #fff;
+            border-radius: 16px;
+            border-top: 3px solid var(--estate-oak);
+            box-shadow: 0 4px 12px var(--estate-shadow);
+            color: #4a5a50;
+            text-decoration: none;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+            .svc-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 24px rgba(0,0,0,.09);
+                color: #4a5a50;
+            }
+
+            .svc-card:focus-visible {
+                outline: 2px solid var(--estate-eucalyptus);
+                outline-offset: 3px;
+            }
+
+            .svc-card i.svc-icon {
+                color: var(--estate-eucalyptus);
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .svc-card h3 {
+                font-size: 1.65rem;
+                color: #16251D;
+                margin: 0 0 .2rem;
+            }
+
+        .svc-price {
+            font-weight: 600;
+            color: var(--estate-oak);
+            margin: 0 0 .8rem;
+        }
+
+        .svc-desc {
+            margin: 0;
+            line-height: 1.6;
+            flex-grow: 1;
+        }
+
+        .svc-go {
+            margin-top: 1.2rem;
+            font-weight: 600;
+            color: var(--estate-eucalyptus);
+        }
+
+            .svc-go i {
+                transition: transform .2s ease;
+            }
+
+        .svc-card:hover .svc-go i {
+            transform: translateX(4px);
+        }
+
+        @@media (prefers-reduced-motion: reduce) {
+            .svc-card, .svc-go i {
+                transition: none;
+            }
+
+                .svc-card:hover {
+                    transform: none;
+                }
+
+                    .svc-card:hover .svc-go i {
+                        transform: none;
+                    }
+        }
+    </style>
+}
+
+<!-- Photo banner with the coastal ridge -->
+<section class="page-banner" style="--banner-image: url('@Url.Content("~/images/hero-estate.jpg")')">
+    <div class="container">
+        <h1>@greeting, @fullName</h1>
+        <p>We'll take care of the laundry. You focus on your day.</p>
+        <div class="mt-4">
+            <a href="@Url.Action("BookPickup", "Order")" class="btn btn-caution rounded-pill px-4 py-2 me-2">
+                <i class="fa-solid fa-calendar-plus me-2"></i>Book Pickup
+            </a>
+            <a href="@Url.Action("MyOrders", "Order")" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">
+                <i class="fa-solid fa-truck me-2"></i>Track Orders
+            </a>
+        </div>
+    </div>
+
+    <div class="ridge" style="--next:#FAFAF7" aria-hidden="true">
+        <svg viewBox="0 0 1200 90" preserveAspectRatio="none">
+            <path class="ridge-back" d="M0 90V38C140 6 250 10 360 36C500 70 590 6 730 10C880 14 960 60 1080 40C1130 32 1170 22 1200 26V90Z" />
+            <path class="ridge-front" d="M0 90V58C120 26 220 26 330 52C470 86 560 28 700 30C860 32 940 74 1060 56C1120 48 1170 40 1200 46V90Z" />
+        </svg>
+    </div>
+</section>
+
+<div class="container mt-4">
+    <!-- Quick Stats -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-body text-center p-4">
+                    <i class="fa-solid fa-shirt fa-2x" style="color: #5F7D69;"></i>
+                    <h3 class="mt-2" style="color: #2B2B2B;">@ViewBag.ActiveOrdersCount</h3>
+                    <p class="text-muted mb-0">Active Orders</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-body text-center p-4">
+                    <i class="fa-solid fa-calendar-day fa-2x" style="color: #5F7D69;"></i>
+                    <h3 class="mt-2" style="color: #2B2B2B;">@ViewBag.NextPickupDate</h3>
+                    <p class="text-muted mb-0">Next Pickup</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-body text-center p-4">
+                    <i class="fa-solid fa-credit-card fa-2x" style="color: #5F7D69;"></i>
+                    <h3 class="mt-2" style="color: #2B2B2B;">R@(ViewBag.OutstandingBalance.ToString("0.00"))</h3>
+                    <p class="text-muted mb-0">Outstanding Balance</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book a service -->
+    @if (services.Any())
+    {
+        <h2 class="svc-heading">Book a service</h2>
+        <p class="svc-sub">Pick one and we'll start your booking with it already selected.</p>
+
+        <div class="row g-4 mb-5">
+            @foreach (var service in services)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <a class="svc-card" href="@Url.Action("BookPickup", "Order", new { serviceId = service.ServiceID })">
+                        <i class="fa-solid @IconFor(service.Name) svc-icon" aria-hidden="true"></i>
+                        <h3>@service.Name</h3>
+                        @if (service.RatePerKg.HasValue)
+                        {
+                            <p class="svc-price">R@(service.RatePerKg.Value.ToString("0.##")) per kg</p>
+                        }
+                        else if (service.RatePerItem.HasValue)
+                        {
+                            <p class="svc-price">R@(service.RatePerItem.Value.ToString("0.##")) per item</p>
+                        }
+                        <p class="svc-desc">@service.Description</p>
+                        <span class="svc-go">Book this service <i class="fa-solid fa-arrow-right ms-1" aria-hidden="true"></i></span>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+</div>
